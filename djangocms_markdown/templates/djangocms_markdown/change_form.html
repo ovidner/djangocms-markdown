@@ -4,11 +4,12 @@
 {% block field_sets %}
     {{ block.super }}
     <div id="epiceditor"></div>
-    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="{% static 'djangocms_markdown/js/jquery-3.1.0.min.js' %}"></script>
+    <script>jQuery.noConflict();</script>
     <script src="{% static 'djangocms_markdown/js/epiceditor.min.js' %}"></script>
 
     <script>
-        //$(function () {
+        jQuery(function($) {
             // Hide the native fieldset
             $('#markdown_form').find('fieldset').hide();
 
@@ -17,17 +18,26 @@
                 clientSideStorage: false,
                 textarea: 'id_body', // Sync with #id_body
                 focusOnLoad: true,
-                autogrow: {
-                    // One has to manually adjust the height a bit
-                    minHeight: window.parent.CMS.$('.cms_modal-frame').height() - 20,
-                    maxHeight: window.parent.CMS.$('.cms_modal-frame').height() - 20
-                }
+                button: { fullscreen: false },
+                autogrow: true
             };
 
-            var editor = new EpicEditor(opts).load();
+            var editor = new EpicEditor(opts).load(function() {
+                var dir = $("body").css("direction");
+                $("iframe").each(function() {
+                    if ($(this).attr("id").substring(0, 10) == "epiceditor") {
+                        var iframe = $(this).contents();
+                        $('html', iframe).attr("dir", dir);
+                        $('iframe', iframe).each(function() {
+                            var subiframe = $(this).contents();
+                            $('html', subiframe).attr("dir", dir);
+                        });
+                    }
+                });
+            });
 
             // Get caret position: editor.editorIframeDocument.getSelection().focusOffset
             // Insert data: editor.editorIframeDocument.getSelection().focusNode.insertData()
-        //});
+        });
     </script>
 {% endblock %}
